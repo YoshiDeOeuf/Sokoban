@@ -1,48 +1,62 @@
 import tkinter as tk
 
+
 WIDTH = 1100
 HEIGHT = 1100
-BLOCSIZE = 100      # Unite de mesure d'un bloc
+POPUP_WIDTH = 300
+POPUP_HEIGHT = 50
+BLOCSIZE = 100    
+MARGIN = 100
+BACKGROUND_COLOR = '#b1d4e0'
 
-# On crée une fenêtre
+# On cree une fenêtre
 fenetre = tk.Tk()
 fenetre.title('SOKOBAAAAAAAAAAAN')
-fenetre.geometry("1100x1100")
+fenetre.geometry(str(WIDTH)+'x'+str(HEIGHT))
 
-canva = tk.Canvas(fenetre, width=WIDTH, height=HEIGHT, bg='#b1d4e0')
+canva = tk.Canvas(fenetre, width=WIDTH, height=HEIGHT, bg=BACKGROUND_COLOR)
 canva.pack()
 
-def win():        # Fonction appelee a chaque deplacement, elle verifie si les conditions de victoires sont valides
-    if ((canva.coords(oeuf)[0],canva.coords(oeuf)[1]) == (canva.coords(nid)[0],canva.coords(nid)[1]) or (canva.coords(oeuf)[0],canva.coords(oeuf)[1]) == (canva.coords(nid2)[0],canva.coords(nid2)[1])) and ((canva.coords(oeuf2)[0],canva.coords(oeuf2)[1]) == (canva.coords(nid)[0],canva.coords(nid)[1]) or (canva.coords(oeuf2)[0],canva.coords(oeuf2)[1]) == (canva.coords(nid2)[0],canva.coords(nid2)[1])):
-        win = tk.Tk()
-        win.title('Bien joué !')
-        win.geometry("300x50")
-        gg = tk.Label(win, text='Félicitations, c\'est gagné !!')
-        gg.pack()
-        fenetre.destroy()
+yoshiPNG = tk.PhotoImage(file='assets/yoshi2D.png')            # Import des images
+oeufPNG = tk.PhotoImage(file='assets/yoshioeuf2D.png')
+brique = tk.PhotoImage(file='assets/brique.png')
+nidPNG = tk.PhotoImage(file='assets/nid.png')
 
-yoshiPNG = tk.PhotoImage(file='yoshi2D.png')            # Import des images
-oeufPNG = tk.PhotoImage(file='yoshioeuf2D.png')
-brique = tk.PhotoImage(file='brique.png')
-nidPNG = tk.PhotoImage(file='nid.png')
-
-yoshiPNG = yoshiPNG.subsample(4,4)                   # Resize des images pour que ca rentre dans les carres
+yoshiPNG = yoshiPNG.subsample(4,4)                   # Resize des images
 oeufPNG = oeufPNG.subsample(6,6)
 brique = brique.subsample(3,3)
 nidPNG = nidPNG.subsample(3,3)
 
-# Creation de la map
+def checkPositionEquality(item1, item2):
+    return (canva.coords(item1)[0],canva.coords(item1)[1]) == (canva.coords(item2)[0],canva.coords(item2)[1])
 
-for i in range(100, 1000, 100):
-    for j in range(100, 1000, 100):
-        if i == 100 or j == 100 or i == 900 or j == 900:
-            canva.create_image(i+BLOCSIZE/2, j+BLOCSIZE/2, image=brique)
 
-yoshi = canva.create_image(5.5*BLOCSIZE, 5.5*BLOCSIZE, image=yoshiPNG)         # Positionnement des images sur la map
-oeuf = canva.create_image(7.5*BLOCSIZE, 6.5*BLOCSIZE, image=oeufPNG)
-oeuf2 = canva.create_image(7.5*BLOCSIZE, 4.5*BLOCSIZE, image=oeufPNG)
-nid = canva.create_image(2.5*BLOCSIZE, 5.5*BLOCSIZE, image=nidPNG)
-nid2 = canva.create_image(4.5*BLOCSIZE, 3.5*BLOCSIZE, image=nidPNG)
+def checkWinConditions():        # Fonction appelee a chaque deplacement
+    if checkPositionEquality(oeuf, nid) and checkPositionEquality(oeuf2, nid2) or checkPositionEquality(oeuf, nid2) and checkPositionEquality(oeuf2, nid):
+        win = tk.Tk()
+        win.title('Bien joué !')
+        win.geometry(str(POPUP_WIDTH)+'x'+str(POPUP_HEIGHT))
+        canva.unbind('<Up>', u)
+        canva.unbind('<Left>', l)
+        canva.unbind('<Right>', r)
+        canva.unbind('<Down>', d)
+        gg = tk.Label(win, text='Félicitations, c\'est gagné !!')
+        gg.pack()
+
+def createMap():
+    for i in range(MARGIN, HEIGHT-MARGIN, BLOCSIZE):
+        for j in range(MARGIN, WIDTH-MARGIN, BLOCSIZE):
+            if i == 100 or j == 100 or i == 900 or j == 900:
+                canva.create_image(i+BLOCSIZE/2, j+BLOCSIZE/2, image=brique)
+
+def changePosition(pos):
+    return pos*BLOCSIZE+3*BLOCSIZE/2
+
+yoshi = canva.create_image(changePosition(4), changePosition(4), image=yoshiPNG)         # Positionnement des images sur la map
+oeuf = canva.create_image(changePosition(6), changePosition(5), image=oeufPNG)
+oeuf2 = canva.create_image(changePosition(6), changePosition(3), image=oeufPNG)
+nid = canva.create_image(changePosition(1), changePosition(4), image=nidPNG)
+nid2 = canva.create_image(changePosition(3), changePosition(2), image=nidPNG)
 
 canva.tag_lower(nid)       # z index pour les nids
 canva.tag_lower(nid2)
@@ -62,7 +76,7 @@ def left(event):
     elif xOeuf2>2.5*BLOCSIZE and yYoshi == yOeuf2 and xYoshi == xOeuf2+BLOCSIZE and not(xOeuf+BLOCSIZE == xOeuf2 and yOeuf == yOeuf2):
         canva.move(oeuf2, -BLOCSIZE, 0)
 
-    win()
+    checkWinConditions()
 
 def up(event):
     xYoshi = canva.coords(yoshi)[0]
@@ -79,7 +93,7 @@ def up(event):
     elif yOeuf2>2.5*BLOCSIZE and xYoshi == xOeuf2 and yYoshi == yOeuf2+BLOCSIZE and not(yOeuf+BLOCSIZE == yOeuf2 and xOeuf == xOeuf2):
         canva.move(oeuf2, 0, -BLOCSIZE)
 
-    win()
+    checkWinConditions()
 
 def right(event):
     xYoshi = canva.coords(yoshi)[0]
@@ -96,7 +110,7 @@ def right(event):
     elif xOeuf2<8.5*BLOCSIZE and yYoshi == yOeuf2 and xYoshi == xOeuf2-BLOCSIZE and not(xOeuf-BLOCSIZE == xOeuf2 and yOeuf == yOeuf2):
         canva.move(oeuf2, BLOCSIZE, 0)
 
-    win()
+    checkWinConditions()
 
 def down(event):
     xYoshi = canva.coords(yoshi)[0]
@@ -113,14 +127,15 @@ def down(event):
     elif yOeuf2<8.5*BLOCSIZE and xYoshi == xOeuf2 and yYoshi == yOeuf2-BLOCSIZE and not(yOeuf-BLOCSIZE == yOeuf2 and xOeuf == xOeuf2):
         canva.move(oeuf2, 0, BLOCSIZE)
 
-    win()
+    checkWinConditions()
 
 # Bind des fleches du clavier avec les fonctions correspondantes
 
-canva.bind_all('<Right>', right)
-canva.bind_all('<Up>', up)
-canva.bind_all('<Left>', left)
-canva.bind_all('<Down>', down)
+r = canva.bind_all('<Right>', right)
+u = canva.bind_all('<Up>', up)
+l = canva.bind_all('<Left>', left)
+d = canva.bind_all('<Down>', down)
 
+createMap()
 
 fenetre.mainloop()
