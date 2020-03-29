@@ -27,12 +27,45 @@ oeufPNG = oeufPNG.subsample(6,6)
 brique = brique.subsample(3,3)
 nidPNG = nidPNG.subsample(3,3)
 
-def checkPositionEquality(item1, item2):
-    return (canva.coords(item1)[0],canva.coords(item1)[1]) == (canva.coords(item2)[0],canva.coords(item2)[1])
+def changePosition(pos):
+    return pos*BLOCSIZE+3*BLOCSIZE/2
 
+
+yoshi = canva.create_image(changePosition(4), changePosition(4), image=yoshiPNG)         # Positionnement des images sur la map
+oeuf = canva.create_image(changePosition(6), changePosition(5), image=oeufPNG)
+oeuf2 = canva.create_image(changePosition(6), changePosition(3), image=oeufPNG)
+nid = canva.create_image(changePosition(1), changePosition(4), image=nidPNG)
+nid2 = canva.create_image(changePosition(3), changePosition(2), image=nidPNG)
+
+oeufs = []
+nids = []
+posNids = []
+
+nids.append(nid)
+nids.append(nid2)
+
+for nid in nids:
+    canva.tag_lower(nid)       # z index pour les nids
+
+def getPosition(item):
+    return (canva.coords(item)[0],canva.coords(item)[1])
+
+
+for nid in nids:
+    posNids.append(getPosition(nid))
+
+
+def checkPositionEquality(item1, item2):
+    return getPosition(item1) == getPosition(item2)
 
 def checkWinConditions():        # Fonction appelee a chaque deplacement
-    if checkPositionEquality(oeuf, nid) and checkPositionEquality(oeuf2, nid2) or checkPositionEquality(oeuf, nid2) and checkPositionEquality(oeuf2, nid):
+    cond = True
+
+    for oeuf in oeufs:
+        if getPosition(oeuf) not in posNids:
+            cond = False
+
+    if cond:
         win = tk.Tk()
         win.title('Bien joué !')
         win.geometry(str(POPUP_WIDTH)+'x'+str(POPUP_HEIGHT))
@@ -48,18 +81,7 @@ def createMap():
         for j in range(MARGIN, WIDTH-MARGIN, BLOCSIZE):
             if i == 100 or j == 100 or i == 900 or j == 900:
                 canva.create_image(i+BLOCSIZE/2, j+BLOCSIZE/2, image=brique)
-
-def changePosition(pos):
-    return pos*BLOCSIZE+3*BLOCSIZE/2
-
-yoshi = canva.create_image(changePosition(4), changePosition(4), image=yoshiPNG)         # Positionnement des images sur la map
-oeuf = canva.create_image(changePosition(6), changePosition(5), image=oeufPNG)
-oeuf2 = canva.create_image(changePosition(6), changePosition(3), image=oeufPNG)
-nid = canva.create_image(changePosition(1), changePosition(4), image=nidPNG)
-nid2 = canva.create_image(changePosition(3), changePosition(2), image=nidPNG)
-
-canva.tag_lower(nid)       # z index pour les nids
-canva.tag_lower(nid2)
+                
 
 def left(event):
     xYoshi = canva.coords(yoshi)[0]
@@ -69,6 +91,9 @@ def left(event):
     xOeuf2 = canva.coords(oeuf2)[0]
     yOeuf2 = canva.coords(oeuf2)[1]
 
+    oeufs.append(oeuf)
+    oeufs.append(oeuf2)
+
     if xYoshi>2.5*BLOCSIZE and (not (xYoshi == xOeuf+BLOCSIZE and yYoshi == yOeuf or yYoshi == yOeuf2 and xYoshi == xOeuf2+BLOCSIZE)):   
         canva.move(yoshi, -BLOCSIZE,0)
     elif xOeuf>2.5*BLOCSIZE and yYoshi == yOeuf and xYoshi == xOeuf+BLOCSIZE and not(xOeuf == xOeuf2+BLOCSIZE and yOeuf == yOeuf2):
@@ -76,7 +101,11 @@ def left(event):
     elif xOeuf2>2.5*BLOCSIZE and yYoshi == yOeuf2 and xYoshi == xOeuf2+BLOCSIZE and not(xOeuf+BLOCSIZE == xOeuf2 and yOeuf == yOeuf2):
         canva.move(oeuf2, -BLOCSIZE, 0)
 
+    for pos in posNids:
+        print(pos)
+
     checkWinConditions()
+
 
 def up(event):
     xYoshi = canva.coords(yoshi)[0]
@@ -85,6 +114,9 @@ def up(event):
     yOeuf = canva.coords(oeuf)[1]
     xOeuf2 = canva.coords(oeuf2)[0]
     yOeuf2 = canva.coords(oeuf2)[1]
+
+    oeufs.append(oeuf)
+    oeufs.append(oeuf2)
 
     if yYoshi>2.5*BLOCSIZE and (not (yYoshi == yOeuf+BLOCSIZE and xYoshi == xOeuf or xYoshi == xOeuf2 and yYoshi == yOeuf2+BLOCSIZE)):
         canva.move(yoshi,0, -BLOCSIZE)
@@ -103,6 +135,9 @@ def right(event):
     xOeuf2 = canva.coords(oeuf2)[0]
     yOeuf2 = canva.coords(oeuf2)[1]
 
+    oeufs.append(oeuf)
+    oeufs.append(oeuf2)
+
     if xYoshi<8.5*BLOCSIZE and (not (xYoshi == xOeuf-BLOCSIZE and yYoshi == yOeuf or yYoshi == yOeuf2 and xYoshi == xOeuf2-BLOCSIZE)):   
         canva.move(yoshi,BLOCSIZE,0)
     elif xOeuf<8.5*BLOCSIZE and yYoshi == yOeuf and xYoshi == xOeuf-BLOCSIZE and not(xOeuf == xOeuf2-BLOCSIZE and yOeuf == yOeuf2):
@@ -119,6 +154,9 @@ def down(event):
     yOeuf = canva.coords(oeuf)[1]
     xOeuf2 = canva.coords(oeuf2)[0]
     yOeuf2 = canva.coords(oeuf2)[1]
+
+    oeufs.append(oeuf)
+    oeufs.append(oeuf2)
 
     if yYoshi<8.5*BLOCSIZE and (not (yYoshi == yOeuf-BLOCSIZE and xYoshi == xOeuf or xYoshi == xOeuf2 and yYoshi == yOeuf2-BLOCSIZE)):
         canva.move(yoshi,0,BLOCSIZE)
